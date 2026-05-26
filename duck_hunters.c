@@ -1,24 +1,28 @@
 /*******************************************************************
-  Project main function template for MicroZed based MZ_APO board
-  designed by Petr Porazil at PiKRON
-
-  change_me.c      - main file
-
-  include your name there and license for distribution.
-
-  Remove next text: This line should not appear in submitted
-  work and project name should be change to match real application.
-  If this text is there I want 10 points subtracted from final
-  evaluation.
-
+ *  duck_hunters.c - entry point of the Duck Hunters game for the
+ *                   MZ_APO board.
+ *
+ *  Author: Sivek 
+ *  Course: APO
+ *
+ *  Architecture:
+ *    main() - maps peripherals, initializes the display and inputs,
+ *             then runs a scene dispatcher loop that switches
+ *             between menu / game / howto scenes based on each
+ *             scene's return value.
+ *
+ *    display.c - LCD + drawing 
+ *    input.c   - knob reading and button edge detection
+ *    menu.c    - main menu
+ *    game.c    - gameplay logic
+ *    control.c   - controls overview
  *******************************************************************/
 
 #define _POSIX_C_SOURCE 200112L
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
-#include <time.h>
 #include <unistd.h>
 
 #include "mzapo_parlcd.h"
@@ -26,30 +30,90 @@
 #include "mzapo_regs.h"
 #include "serialize_lock.h"
 
-int main(int argc, char *argv[])
+#include "display.h"
+#include "input.h"
+#include "menu.h"
+#include "input.h"
+#include "scenes.h"
+
+/* Map peripheral physical addresses into the process address space. */
+static int map_peripherals(unsigned char **lcd_out, unsigned char **spiled_out)
 {
+	unsigned char *lcd = map_phys_address(PARLCD_REG_BASE_PHYS,
+	                                      PARLCD_REG_SIZE, 0);
+	if (lcd == NULL) {
+		fprintf(stderr, "Failed to map PARLCD\n");
+		return -1;
+	}
 
-  /* Serialize execution of applications */
+	unsigned char *spiled = map_phys_address(SPILED_REG_BASE_PHYS,
+	                                         SPILED_REG_SIZE, 0);
+	if (spiled == NULL) {
+		fprintf(stderr, "Failed to map SPILED\n");
+		return -1;
+	}
 
-  /* Try to acquire lock the first */
-  if (serialize_lock(1) <= 0) {
-    printf("System is occupied\n");
+	*lcd_out = lcd;
+	*spiled_out = spiled;
+	return 0;
+}
 
-    if (1) {
-      printf("Waitting\n");
-      /* Wait till application holding lock releases it or exits */
-      serialize_lock(0);
+/* Main scene dispatcher - runs until the user chooses QUIT. */
+static void run_main_loop(input_t *in, unsigned char *spiled)
+{
+	scene_t scene = SCENE_MENU;
+
+	while (scene != SCENE_QUIT) {
+		switch (scene) {
+		case SCENE_MENU:
+			scene = menu_run(in);
+			break;
+		case SCENE_GAME:
+			scene = game_run(in, spiled);
+			break;
+		case SCENE_CONTROL:
+			scene = howto_run(in);
+			break;
+		default:
+			scene = SCENE_QUIT;
+			break;
+		}
+	}
+}
+
+int main(void)
+{
+    if (serialize_lock(1) <= 0) {
+        printf("Application already running, waiting...\n");
+        serialize_lock(0);
     }
-  }
 
-  printf("Hello world\n");
+    unsigned char *lcd_base = map_phys_address(PARLCD_REG_BASE_PHYS,
+                                               PARLCD_REG_SIZE, 0);
+    unsigned char *spiled_base = map_phys_address(SPILED_REG_BASE_PHYS,
+                                                  SPILED_REG_SIZE, 0);
+    if (lcd_base == NULL || spiled_base == NULL) {
+        fprintf(stderr, "Failed to map peripherals\n");
+        serialize_unlock();
+        return 1;
+    }
 
-  sleep(4);
+    display_init(lcd_base);
 
-  printf("Goodbye world\n");
+    input_t input;
+    input_init(&input, spiled_base);
 
-  /* Release the lock */
-  serialize_unlock();
+    scene_t chosen = menu_run(&input);
 
-  return 0;
+    switch (chosen) {
+    case SCENE_GAME:    printf("Selected: START\n");   break;
+    case SCENE_CONTROL: printf("Selected: CONTROL\n"); break;
+    case SCENE_QUIT:    printf("Selected: EXIT\n");    break;
+    default:            printf("Selected: ?\n");       break;
+    }
+
+    display_clear(COLOR_BLACK);
+    display_flush();
+    serialize_unlock();
+    return 0;
 }
