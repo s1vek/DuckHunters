@@ -15,7 +15,6 @@ void display_init(unsigned char *parlcd_base)
 	parlcd_hx8357_init(lcd_base);
 	parlcd_write_cmd(lcd_base, 0x3A);
 	parlcd_write_data(lcd_base, 0x55);
-
 	display_clear(COLOR_BLACK);
 	display_flush();
 }
@@ -75,14 +74,21 @@ int display_text_width(const char *s, int scale)
 
 void display_flush(void)
 {
+	// Nastavení X souřadnic (musí se poslat 4 bajty)
 	parlcd_write_cmd(lcd_base, 0x2A);
-	parlcd_write_data(lcd_base, 0x0000);
-	parlcd_write_data(lcd_base, (uint16_t)(LCD_W - 1));
+	parlcd_write_data(lcd_base, 0); // Start X High
+	parlcd_write_data(lcd_base, 0); // Start X Low
+	parlcd_write_data(lcd_base, (LCD_W - 1) >> 8);   // End X High
+	parlcd_write_data(lcd_base, (LCD_W - 1) & 0xFF); // End X Low
 
+	// Nastavení Y souřadnic (musí se poslat 4 bajty)
 	parlcd_write_cmd(lcd_base, 0x2B);
-	parlcd_write_data(lcd_base, 0x0000);
-	parlcd_write_data(lcd_base, (uint16_t)(LCD_H - 1));
+	parlcd_write_data(lcd_base, 0); // Start Y High
+	parlcd_write_data(lcd_base, 0); // Start Y Low
+	parlcd_write_data(lcd_base, (LCD_H - 1) >> 8);   // End Y High
+	parlcd_write_data(lcd_base, (LCD_H - 1) & 0xFF); // End Y Low
 
+	// Samotný zápis do paměti displeje
 	parlcd_write_cmd(lcd_base, 0x2C);
 	for (int i = 0; i < LCD_W * LCD_H; i++) {
 		parlcd_write_data(lcd_base, fb[i]);

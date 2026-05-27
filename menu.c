@@ -18,14 +18,22 @@ static const scene_t menu_targets[MENU_ITEMS] = {
 
 static int update_selection(int selected, int knob_delta)
 {
-	const int deadband = 3;
-	if (knob_delta > deadband) {
+	static int accum = 0; 
+	accum += knob_delta;
+
+	const int threshold = 4; 
+
+	if (accum >= threshold) {
 		selected++;
-	} else if (knob_delta < -deadband) {
+		accum -= threshold; 
+	} else if (accum <= -threshold) {
 		selected--;
+		accum += threshold;
 	}
+
 	if (selected < 0) selected = MENU_ITEMS - 1;
 	if (selected >= MENU_ITEMS) selected = 0;
+	
 	return selected;
 }
 
@@ -61,19 +69,19 @@ scene_t menu_run(input_t *in)
 {
 	int selected = 0;
 
-	while (1) {
-		input_read(in);
-		selected = update_selection(selected, in->red_delta);
+    while (1) { 
+        input_read(in);
+        selected = update_selection(selected, in->red_delta);
 
-		if (input_green_pressed(in)) {
-			return menu_targets[selected];
-		}
-
-		display_clear(COLOR_RED);
+        display_clear(COLOR_GRAY);
 		draw_title();
-		draw_items(selected);
-		display_flush();
+        draw_items(selected);
 
-		usleep(20 * 1000);
-	}
+    
+        display_flush();
+        
+        if (input_red_pressed(in)) {
+            return menu_targets[selected];
+        }
+    }
 }

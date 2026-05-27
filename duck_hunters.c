@@ -69,10 +69,12 @@ static void run_main_loop(input_t *in, unsigned char *spiled)
 			scene = menu_run(in);
 			break;
 		case SCENE_GAME:
-			scene = game_run(in, spiled);
+			printf("Hra jeste neni hotova!\n");
+			scene = SCENE_QUIT; // Ukončí program
 			break;
 		case SCENE_CONTROL:
-			scene = howto_run(in);
+			printf("Ovladani jeste neni hotove!\n");
+			scene = SCENE_QUIT; // Ukončí program
 			break;
 		default:
 			scene = SCENE_QUIT;
@@ -103,14 +105,7 @@ int main(void)
     input_t input;
     input_init(&input, spiled_base);
 
-    scene_t chosen = menu_run(&input);
-
-    switch (chosen) {
-    case SCENE_GAME:    printf("Selected: START\n");   break;
-    case SCENE_CONTROL: printf("Selected: CONTROL\n"); break;
-    case SCENE_QUIT:    printf("Selected: EXIT\n");    break;
-    default:            printf("Selected: ?\n");       break;
-    }
+    run_main_loop(&input, spiled_base);
 
     display_clear(COLOR_BLACK);
     display_flush();
