@@ -6,7 +6,7 @@ LDFLAGS = -static
 LDLIBS = -lrt -lpthread
 
 SOURCES = duck_hunters.c
-SOURCES += display.c input.c menu.c
+SOURCES += display.c input.c menu.c game.c control.c pause.c
 SOURCES += mzapo_phys.c mzapo_parlcd.c serialize_lock.c
 SOURCES += font_prop14x16.c font_rom8x16.c
 

@@ -295,7 +295,7 @@ void parlcd_hx8357_init(unsigned char *parlcd_mem_base)
 
     parlcd_write_cmd(parlcd_mem_base, 0x36); // MADCTL Memory access control
     //parlcd_write_data(parlcd_mem_base, 0x48);
-    parlcd_write_data(parlcd_mem_base, 0xE8);
+    parlcd_write_data(parlcd_mem_base, 0xE0);
     parlcd_delay(20);
 
     parlcd_write_cmd(parlcd_mem_base, 0x21); //Display inversion on

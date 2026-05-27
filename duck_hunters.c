@@ -35,6 +35,8 @@
 #include "menu.h"
 #include "input.h"
 #include "scenes.h"
+#include "game.h"
+#include "control.h"
 
 /* Map peripheral physical addresses into the process address space. */
 static int map_peripherals(unsigned char **lcd_out, unsigned char **spiled_out)
@@ -69,12 +71,10 @@ static void run_main_loop(input_t *in, unsigned char *spiled)
 			scene = menu_run(in);
 			break;
 		case SCENE_GAME:
-			printf("Hra jeste neni hotova!\n");
-			scene = SCENE_QUIT; // Ukončí program
+			scene = game_run(in, spiled);
 			break;
 		case SCENE_CONTROL:
-			printf("Ovladani jeste neni hotove!\n");
-			scene = SCENE_QUIT; // Ukončí program
+			scene = control_run(in);
 			break;
 		default:
 			scene = SCENE_QUIT;
