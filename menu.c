@@ -10,6 +10,7 @@ static const scene_t menu_targets[MENU_ITEMS] = {
 	SCENE_GAME, SCENE_CONTROL, SCENE_QUIT
 };
 
+// Convert knob delta to +1/-1 selection
 static int update_selection(int selected, int knob_delta)
 {
 	static int accum = 0;
@@ -21,6 +22,7 @@ static int update_selection(int selected, int knob_delta)
 	return selected;
 }
 
+// Draw of title
 static void draw_title(void)
 {
 	const char *title = "DUCK HUNTERS";
@@ -28,6 +30,7 @@ static void draw_title(void)
 	display_text((LCD_W - w) / 2, 40, title, COLOR_BLACK, 4);
 }
 
+// Draw menu
 static void draw_items(int selected)
 {
 	int line_h = 50, start_y = 150;
@@ -41,6 +44,7 @@ static void draw_items(int selected)
 	}
 }
 
+//Run menu unitl user confirm
 scene_t menu_run(input_t *in)
 {
 	int selected = 0;

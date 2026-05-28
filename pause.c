@@ -5,6 +5,7 @@
 static const char  *labels[ITEMS]  = { "RESUME", "BACK TO MENU" };
 static const scene_t targets[ITEMS] = { SCENE_GAME, SCENE_MENU };
 
+// Draw pause panel
 static void draw_panel(int selected)
 {
 	int bw = 340, bh = 180;
@@ -30,6 +31,7 @@ static void draw_panel(int selected)
 	}
 }
 
+// Run pause menu
 scene_t pause_run(input_t *in)
 {
 	int selected = 0, accum = 0;

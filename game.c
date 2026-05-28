@@ -11,6 +11,7 @@
 #include "input.h"
 #include "mzapo_regs.h"
 #include "pause.h"
+#include "score.h"
 
 #define MAX_DUCKS     12
 #define DUCK_W        50
@@ -28,7 +29,6 @@
 #define COLOR_SKY     RGB(120, 180, 230)
 #define COLOR_DUCK    RGB(180, 120, 40)
 #define COLOR_DUCK    RGB(200, 60, 60)
-#define COLOR_DUCK_D  RGB(140, 40, 40)
 #define COLOR_BELLY   RGB(245, 225, 180)
 #define COLOR_BEAK    RGB(255, 140, 0)
 
@@ -48,21 +48,22 @@ typedef struct {
 	duck_t ducks[MAX_DUCKS];
 } game_t;
 
-/* ---------- LED helpers ---------- */
+
 static void write_reg(unsigned char *base, int off, uint32_t v)
 {
 	*(volatile uint32_t *)(base + off) = v;
 }
 
+// Update rbg 
 static void leds_update(unsigned char *spiled, const game_t *g)
 {
 	uint32_t rgb = 0;
-	if (g->hit_flash > 0)  rgb = 0x0000FF00;  /* green */
-	if (g->miss_flash > 0) rgb = 0x00FF0000;  /* red */
+	if (g->hit_flash > 0)  rgb = 0x0000FF00;  
+	if (g->miss_flash > 0) rgb = 0x00FF0000;  
 
 	uint32_t line = 0;
 	for (int i = 0; i < g->lives && i < 3; i++) {
-		line |= 0x3FFu << (i * 11);  /* 3 segmenty po 10 LED */
+		line |= 0x3FFu << (i * 11);  
 	}
 
 	write_reg(spiled, SPILED_REG_LED_RGB1_o, rgb);
@@ -70,7 +71,7 @@ static void leds_update(unsigned char *spiled, const game_t *g)
 	write_reg(spiled, SPILED_REG_LED_LINE_o, line);
 }
 
-/* ---------- Duck logic ---------- */
+// Spawn of ducks from each sides
 static void duck_spawn(duck_t *d, int score)
 {
 	int level = score / 6;
@@ -82,6 +83,7 @@ static void duck_spawn(duck_t *d, int score)
 	d->vx = left ?  vx     : -vx;
 }
 
+// Count active ducks
 static int count_active(const game_t *g)
 {
 	int n = 0;
@@ -90,6 +92,7 @@ static int count_active(const game_t *g)
 	return n;
 }
 
+// Spawn of ducks if its allowed
 static void try_spawn(game_t *g)
 {
 	if (g->spawn_timer > 0) { g->spawn_timer--; return; }
@@ -114,6 +117,7 @@ static void try_spawn(game_t *g)
 	g->spawn_timer = interval;
 }
 
+// Moving of ducks
 static int ducks_step(game_t *g)
 {
 	int missed = 0;
@@ -130,6 +134,7 @@ static int ducks_step(game_t *g)
 	return missed;
 }
 
+// Check crosshair and duck, return 1 if hit
 static int try_shoot(game_t *g)
 {
 	for (int i = 0; i < MAX_DUCKS; i++) {
@@ -144,7 +149,7 @@ static int try_shoot(game_t *g)
 	return 0;
 }
 
-/* ---------- Drawing ---------- */
+// Draw ducks
 static void draw_duck(const duck_t *d)
 {
 	if (!d->active) return;
@@ -160,6 +165,7 @@ static void draw_duck(const duck_t *d)
 
 }
 
+// Draw crosshair
 static void draw_crosshair(int x, int y, uint16_t color)
 {
 	display_rect(x - CROSS_R, y - 1, CROSS_R * 2, 2, color);
@@ -167,6 +173,7 @@ static void draw_crosshair(int x, int y, uint16_t color)
 	display_rect(x - 3, y - 3, 6, 6, color);
 }
 
+// Draw HUD
 static void draw_hud(const game_t *g)
 {
 	char buf[32];
@@ -180,13 +187,14 @@ static void draw_hud(const game_t *g)
 	display_text(LCD_W - w - 10, 10, buf, COLOR_BLACK, 2);
 }
 
+// Draw full frame
 static void draw_scene(const game_t *g)
 {
 	display_clear(COLOR_SKY);
 
 	for (int i = 0; i < MAX_DUCKS; i++) draw_duck(&g->ducks[i]);
 
-	uint16_t c = COLOR_RED;
+	uint16_t c = COLOR_BLACK;
 	if (g->hit_flash > 0)  c = COLOR_GREEN;
 	if (g->miss_flash > 0) c = COLOR_WHITE;
 	draw_crosshair(g->cx, g->cy, c);
@@ -194,7 +202,7 @@ static void draw_scene(const game_t *g)
 	draw_hud(g);
 }
 
-/* ---------- Game over ---------- */
+// Gameover screen
 static void show_game_over(input_t *in, int score)
 {
 	char buf[32];
@@ -216,7 +224,7 @@ static void show_game_over(input_t *in, int score)
 	}
 }
 
-/* ---------- Main loop ---------- */
+// Main gameloop
 scene_t game_run(input_t *in, unsigned char *spiled)
 {
 	game_t g = {
@@ -270,6 +278,7 @@ scene_t game_run(input_t *in, unsigned char *spiled)
 	write_reg(spiled, SPILED_REG_LED_RGB1_o, 0);
 	write_reg(spiled, SPILED_REG_LED_RGB2_o, 0);
 	write_reg(spiled, SPILED_REG_LED_LINE_o, 0);
+	score_save_best(g.score);
 	show_game_over(in, g.score);
 	return SCENE_MENU;
 }

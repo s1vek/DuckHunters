@@ -38,7 +38,7 @@
 #include "game.h"
 #include "control.h"
 
-/* Map peripheral physical addresses into the process address space. */
+// Map LCD + SPILED into process memory.
 static int map_peripherals(unsigned char **lcd_out, unsigned char **spiled_out)
 {
 	unsigned char *lcd = map_phys_address(PARLCD_REG_BASE_PHYS,
@@ -60,7 +60,7 @@ static int map_peripherals(unsigned char **lcd_out, unsigned char **spiled_out)
 	return 0;
 }
 
-/* Main scene dispatcher - runs until the user chooses QUIT. */
+// Scene selector + loop
 static void run_main_loop(input_t *in, unsigned char *spiled)
 {
 	scene_t scene = SCENE_MENU;

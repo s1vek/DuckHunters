@@ -1,6 +1,7 @@
 #include "control.h"
 #include "display.h"
 
+// Draw controls overview
 static void draw_screen(void)
 {
 	display_clear(COLOR_WHITE);
@@ -19,6 +20,7 @@ static void draw_screen(void)
 	display_text((LCD_W - hw) / 2, LCD_H - 50, hint, COLOR_BLACK, 2);
 }
 
+// Shows controls when red knob pressed
 scene_t control_run(input_t *in)
 {
 	while (1) {
