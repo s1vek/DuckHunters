@@ -3,6 +3,7 @@
 #include "input.h"
 #include "mzapo_regs.h"
 
+// Read the 32-bit knob 
 static uint32_t read_reg(unsigned char *base)
 {
 	return *(volatile uint32_t *)(base + SPILED_REG_KNOBS_8BIT_o);

@@ -4,6 +4,7 @@
 #include "input.h"
 #include "scenes.h"
 
+// Run the main menu
 scene_t menu_run(input_t *in);
 
 #endif

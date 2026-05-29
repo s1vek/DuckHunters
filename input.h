@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+// Holds the current and previous knob/button state for edge detection.
 typedef struct
 {
 	unsigned char *spiled_base;

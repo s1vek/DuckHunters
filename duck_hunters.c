@@ -33,32 +33,9 @@
 #include "display.h"
 #include "input.h"
 #include "menu.h"
-#include "input.h"
 #include "scenes.h"
 #include "game.h"
 #include "control.h"
-
-// Map LCD + SPILED into process memory.
-static int map_peripherals(unsigned char **lcd_out, unsigned char **spiled_out)
-{
-	unsigned char *lcd = map_phys_address(PARLCD_REG_BASE_PHYS,
-	                                      PARLCD_REG_SIZE, 0);
-	if (lcd == NULL) {
-		fprintf(stderr, "Failed to map PARLCD\n");
-		return -1;
-	}
-
-	unsigned char *spiled = map_phys_address(SPILED_REG_BASE_PHYS,
-	                                         SPILED_REG_SIZE, 0);
-	if (spiled == NULL) {
-		fprintf(stderr, "Failed to map SPILED\n");
-		return -1;
-	}
-
-	*lcd_out = lcd;
-	*spiled_out = spiled;
-	return 0;
-}
 
 // Scene selector + loop
 static void run_main_loop(input_t *in, unsigned char *spiled)
